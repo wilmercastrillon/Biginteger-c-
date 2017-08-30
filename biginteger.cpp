@@ -1,252 +1,174 @@
-#include <stdio.h>
-#include <string.h>
-#include <vector>
-#include <iostream>
-#include <sstream>
+ #include <bits/stdc++.h>
 
 using namespace std;
-typedef vector<short> vs;
+typedef vector<int> vi;
 
 struct biginteger{
-	int tam;
-    vector<short> num;
+    vi num;
 
-	void iniciar(string c){
-		tam = c.length();
-		num.clear();
+    void iniciar(string c){
+        num.clear();
+		int tam = c.length();
 		for(int i = tam - 1; i > -1; i--) num.push_back(c[i] - '0');
+		quitar_zeros_izq();
 	}
 
 	void iniciar(int c){
 		num.clear();
-		tam = 0;
 		while(c > 0){
 			num.push_back(c % 10);
 			c /= 10;
-			tam++;
 		}
 	}
 
 	void imprimir(){
-		for(int i = tam - 1; i > -1; i--) printf("%d", num[i]);
+		for(int i = num.size() - 1; i > -1; i--) printf("%d", num[i]);
 		printf("\n");
 	}
 
-	void suma2(vector<short> b){
-		int aux = 0, pos = b.size();
+	void quitar_zeros_izq(){
+	    int q = num.size();
+	    while(q > 1 && !num[--q]) num.pop_back();
+	}
+
+	biginteger suma(biginteger b2){
+	    vi b = b2.num;
+	    biginteger res;
+		res.num.assign(num.begin(), num.end());
+		int aux = 0, pos = b.size(), tam = num.size();
 
 		for(int i = 0; i < pos; i++){
 			if(i < tam){
-				aux += num[i] + b[i];
-				num[i] = aux % 10;
+				aux += res.num[i] + b[i];
+				res.num[i] = aux % 10;
 			}else{
 				aux += b[i];
-				num.push_back(aux % 10);
+				res.num.push_back(aux % 10);
 			}
 			aux /= 10;
 		}
 
 		while(aux > 0){
 			if(pos >= tam)
-				num.push_back(aux % 10);
+				res.num.push_back(aux % 10);
 			else{
-				aux += num[pos];
-				num[pos++] = aux % 10;
+				aux += res.num[pos];
+				res.num[pos++] = aux % 10;
 			}
-
 			aux /= 10;
 		}
-
-		tam = num.size();
-	}
-
-	biginteger suma(biginteger big){
-		vs b = big.num;
-		int aux = 0, pos = max(big.tam, tam);
-		biginteger a;
-
-		for(int i = 0; i < pos || aux > 0; i++){
-			if(i < tam) aux += num[i];
-			if(i < b.size()) aux += b[i];
-
-            a.num.push_back(aux % 10);
-			aux /= 10;
-		}
-
-		a.tam = a.num.size();
-		return a;
-	}
-
-	biginteger multiplicar(biginteger b){
-		int l = b.num.size();
-		vector<vs>  vvs(l);
-
-		for(int i = 0; i < l; i++){
-			int aux = 0;
-			for(int j = 0; j < i; j++) vvs[i].push_back(0);
-
-			for(int j = 0; j < num.size(); j++){
-				aux = aux + (b.num[i] * num[j]);
-				vvs[i].push_back(aux % 10);
-				aux /= 10;
-			}
-
-			while(aux > 0){
-				vvs[i].push_back(aux % 10);
-				aux /= 10;
-			}
-		}
-
-        biginteger res;
-		res.iniciar("0");
-		for(int i = 0; i < l; i++) res.suma2(vvs[i]);
-
+		res.quitar_zeros_izq();
 		return res;
 	}
 
-	biginteger bits_der(int c){
-	    biginteger big;
-	    big.num.clear();
-	    for(int i = c; i < tam; i++){
-	        big.num.push_back(num[i]);
-	    }
+    biginteger multiplicar(biginteger b2) {
+        vi y = b2.num;
+        int n = num.size() , m = y.size(), aux = 0, l = n - 1;
+        biginteger res;
+        res.num.assign(n + m - 1, 0);
 
-	    if(!big.num.size()) big.num.push_back(0);
-	    big.tam = big.num.size();
-	    return big;
-	}
+        for(int i = 0; i < n; i++){
+            for(int j = 0; j < m; j++){
+                if(i != l)
+                    res.num[i + j] += (num[i] * y[j]);
+                else{
+                    aux += res.num[i + j] + (num[i] * y[j]);
+                    res.num[i + j] = aux % 10;
+                    aux /= 10;
+                }
+            }
+            if(i != l){
+                aux += res.num[i];
+                res.num[i] = aux % 10;
+                aux /= 10;
+            }
+        }
 
-	biginteger bits_izq(int a){
-	    biginteger big;
-	    big.num.clear();
-	    a--;
-	    for(int i = 0; i <= a && i < tam; i++){
-	        big.num.push_back(num[i]);
-	    }
+        while(aux){
+            res.num.push_back(aux % 10);
+            aux /= 10;
+        }
+        res.quitar_zeros_izq();
+        return res;
+    }
 
-	    if(!big.num.size()) big.num.push_back(0);
-	    big.tam = big.num.size();
-	    return big;
-	}
+    biginteger resta(biginteger b2){//asumimos que b2 es menor
+        vi x = b2.num;
+        biginteger res;
+        res.num.assign(num.begin(), num.end());
+        int i;
 
-	void quitar_zeros_izq(){
-	    while(!num.back() && num.size() > 1){
-	        num.pop_back();
-	    }
-	    tam = num.size();
-	}
+        for(i = 0; i < x.size(); i++){
+            if(x[i] > res.num[i]){
+                res.num[i] += 10;
+                res.num[i + 1]--;
+            }
+            res.num[i] -= x[i];
+        }
+        while(res.num[i] < 0){
+            res.num[i++] += 10;
+            res.num[i]--;
+        }
+        res.quitar_zeros_izq();
+        return res;
+    }
 
-	biginteger resta(biginteger big){ //asumimos que el numero que llega es menor
-	    big.quitar_zeros_izq();
-        vs b = big.num;
-
-		int aux = 0, pos = max(big.tam, tam);
-		biginteger a;
-		if(b.size() == 1 && b[0] == 0){
-		    a = bits_der(0);
-		    return a;
-		}
-
-		bool cero = false;
-
-		for(int i = 0; i < pos || aux > 0; i++){
-			if(i < tam) aux += num[i];
-			if(i < b.size()){
-			    if (cero){
-			        aux += 9 - b[i];
-			    }else{
-			        if(b[i]){
-			            cero = 1;
-			            aux += 10 - b[i];
-			        }
-			    }
-			}else{
-			    if(i < pos) aux += 9;
-			}
-            a.num.push_back(aux % 10);
-			aux /= 10;
-		}
-
-        a.num[a.num.size() - 1]--;
-        a.quitar_zeros_izq();
-		return a;
-	}
-
-	void mover_izq(int n){
-	    for(int i = n; i > 0; i--) num.insert(num.begin(), 0);
-	    tam = num.size();
-	}
-
-	biginteger karatsuba(biginteger b){
-	    int n = max(b.tam, tam);
-	    if(n < 4){
-	        return multiplicar(b);
-	    }
-	    int k = n >> 1;
-
-	    biginteger a1 = bits_der(k);
-	    biginteger a0 = bits_izq(k);
-        biginteger b1 = b.bits_der(k);
-	    biginteger b0 = b.bits_izq(k);
-
-	    biginteger p2 = a1.karatsuba(b1);
-	    p2.quitar_zeros_izq();
-	    biginteger p1 = (a0.suma(a1)).karatsuba(b0.suma(b1));
-	    p1.quitar_zeros_izq();
-	    biginteger p0 = a0.karatsuba(b0);
-	    p0.quitar_zeros_izq();
-
-	    /*a0.imprimir();
-	    a1.imprimir();
-	    b0.imprimir();
-	    b1.imprimir();
-	    cout << endl;
-	    p0.imprimir();
-	    p1.imprimir();
-	    p2.imprimir();
-        */
-        //cout << "auxiliar 1 " << endl;
-	    biginteger aux1 = p1.resta(p2.suma(p0));
-	    //aux1.imprimir();
-        aux1.mover_izq(k);
-        //aux1.imprimir();
-        //cout << "final" << endl;
-	    p2.mover_izq(2*k);
-
-        /*cout << "resultados para sumar" << endl;
-	    p2.imprimir();
-	    aux1.imprimir();
-	    p0.imprimir();
-        */
-	    return p2.suma(aux1.suma(p0));
-	}
+    int comparar(biginteger b){//1 mayor, 0 igual, -1 menor
+        if(num.size() > b.num.size()) return 1;
+        else
+            if(num.size() < b.num.size()) return -1;
+            else{
+                 for(int i = num.size() - 1; i > -1; i--){
+                    if(num[i] > b.num[i]) return 1;
+                    else if(num[i] < b.num[i]) return -1;
+                }
+            }
+        return 0;
+    }
 };
+typedef biginteger bigint;
+
+bigint operator+(bigint &x, bigint &y){return x.suma(y);}
+bigint operator-(bigint &x, bigint &y){return x.resta(y);}
+bigint operator*(bigint &x, bigint &y){return x.multiplicar(y);}
+
+bigint operator+=(bigint &x, bigint &y){return x = x.suma(y);}
+bigint operator-=(bigint &x, bigint &y){return x = x.resta(y);}
+bigint operator*=(bigint &x, bigint &y){return x = x.multiplicar(y);}
+
+bool operator<(bigint &x, bigint &y){return x.comparar(y) == -1;}
+bool operator>(bigint &x, bigint &y){return x.comparar(y) == 1;}
+bool operator==(biginteger &x, biginteger &y){return x.comparar(y) == 0;}
+bool operator<=(bigint &x, bigint &y){
+    int q = x.comparar(y);
+    return q == -1 || q == 0;
+}
+bool operator>=(bigint &x, bigint &y){
+    int q = x.comparar(y);
+    return q == 0 || q == 1;
+}
 
 int main(){
-	biginteger n, m, o;
-	string n1, n2;
-	int f;
+    string n, m;
+    biginteger b1, b2, b3;
 
-	while(cin >> f){
-	    f++;
-	    n.iniciar(1);
-        for(int i = 1; i < f; i++){
-            m.iniciar(i);
-            n = n.multiplicar(m);
+    while(cin >> n >> m){
+        b1.iniciar(n);
+        b2.iniciar(m);
+
+        b3 = b1 * b2;
+        b3.imprimir();
+
+        b3 = b1 + b2;
+        b3.imprimir();
+
+        if(b1 > b2){
+            cout << "b1 es mayor" << endl;
+        }else if(b1 == b2){
+            cout << "b1 igual b2" << endl;
+        }else{
+            cout << "b1 es menor" << endl;
         }
-        n.imprimir();
         cout << endl;
-	}
-
-	/*while(cin >> n1 >> n2){
-	    n.iniciar(n1);
-	    m.iniciar(n2);
-
-        n = n.karatsuba(m);
-        //n = n.resta(m);
-        n.imprimir();
-        cout << endl;
-    }*/
-
-	return 0;
+    }
 }
