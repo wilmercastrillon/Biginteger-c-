@@ -1,174 +1,229 @@
- #include <bits/stdc++.h>
+#include <bits/stdc++.h>
 
 using namespace std;
-typedef vector<int> vi;
+typedef unsigned long long int ulli;
+typedef long long int tdato; //no debe ser unsigned para la resta!!!
+tdato base = 1000000000;
 
 struct biginteger{
-    vi num;
+    vector<tdato> num;
+    bool signo;
 
-    void iniciar(string c){
+    void iniciar(int n){
         num.clear();
-		int tam = c.length();
-		for(int i = tam - 1; i > -1; i--) num.push_back(c[i] - '0');
-		quitar_zeros_izq();
-	}
-
-	void iniciar(int c){
-		num.clear();
-		while(c > 0){
-			num.push_back(c % 10);
-			c /= 10;
-		}
-	}
-
-	void imprimir(){
-		for(int i = num.size() - 1; i > -1; i--) printf("%d", num[i]);
-		printf("\n");
-	}
-
-	void quitar_zeros_izq(){
-	    int q = num.size();
-	    while(q > 1 && !num[--q]) num.pop_back();
-	}
-
-	biginteger suma(biginteger b2){
-	    vi b = b2.num;
-	    biginteger res;
-		res.num.assign(num.begin(), num.end());
-		int aux = 0, pos = b.size(), tam = num.size();
-
-		for(int i = 0; i < pos; i++){
-			if(i < tam){
-				aux += res.num[i] + b[i];
-				res.num[i] = aux % 10;
-			}else{
-				aux += b[i];
-				res.num.push_back(aux % 10);
-			}
-			aux /= 10;
-		}
-
-		while(aux > 0){
-			if(pos >= tam)
-				res.num.push_back(aux % 10);
-			else{
-				aux += res.num[pos];
-				res.num[pos++] = aux % 10;
-			}
-			aux /= 10;
-		}
-		res.quitar_zeros_izq();
-		return res;
-	}
-
-    biginteger multiplicar(biginteger b2) {
-        vi y = b2.num;
-        int n = num.size() , m = y.size(), aux = 0, l = n - 1;
-        biginteger res;
-        res.num.assign(n + m - 1, 0);
-
-        for(int i = 0; i < n; i++){
-            for(int j = 0; j < m; j++){
-                if(i != l)
-                    res.num[i + j] += (num[i] * y[j]);
-                else{
-                    aux += res.num[i + j] + (num[i] * y[j]);
-                    res.num[i + j] = aux % 10;
-                    aux /= 10;
-                }
-            }
-            if(i != l){
-                aux += res.num[i];
-                res.num[i] = aux % 10;
-                aux /= 10;
-            }
+        signo = n >= 0;
+        n = abs(n);
+        while(n){
+            num.push_back((n >= base)? n % base: n);
+            n /= base;
         }
-
-        while(aux){
-            res.num.push_back(aux % 10);
-            aux /= 10;
-        }
-        res.quitar_zeros_izq();
-        return res;
     }
 
-    biginteger resta(biginteger b2){//asumimos que b2 es menor
-        vi x = b2.num;
-        biginteger res;
-        res.num.assign(num.begin(), num.end());
-        int i;
-
-        for(i = 0; i < x.size(); i++){
-            if(x[i] > res.num[i]){
-                res.num[i] += 10;
-                res.num[i + 1]--;
-            }
-            res.num[i] -= x[i];
+    void iniciar(string n){
+        num.clear();
+        signo = n[0] != '-';
+        if(n[0] == '-') n = n.substr(1);
+        for(int i = n.size(); i > 0; i -= 9){
+            if(i < 9) num.push_back(atoi(n.substr(0, i).c_str()));
+            else num.push_back(atoi(n.substr(i-9, 9).c_str()));
         }
-        while(res.num[i] < 0){
-            res.num[i++] += 10;
-            res.num[i]--;
-        }
-        res.quitar_zeros_izq();
-        return res;
+        quitar_zeros_izq();
     }
 
-    int comparar(biginteger b){//1 mayor, 0 igual, -1 menor
-        if(num.size() > b.num.size()) return 1;
-        else
-            if(num.size() < b.num.size()) return -1;
-            else{
-                 for(int i = num.size() - 1; i > -1; i--){
-                    if(num[i] > b.num[i]) return 1;
-                    else if(num[i] < b.num[i]) return -1;
-                }
+    void quitar_zeros_izq(){
+        while(num.size() && !num.back()) num.pop_back();
+        if(num.size() == 0 && num[0] == 0) signo = true;
+    }
+
+    void imprimir(){
+        if(!signo) printf("-");
+        printf("%d", ((num.size())? num.back(): 0));
+        for(int i = num.size() - 2; i >= 0; i--)
+            printf("%09d", num[i]);
+        printf("\n");
+    }
+
+    biginteger suma(biginteger b){
+        ulli carry = 0, aux;
+        int l = max(b.num.size(), num.size());
+        biginteger c;
+
+        for(int i = 0; i < l || carry; i++){
+            aux = carry;
+            if(i < b.num.size()) aux += b.num[i];
+            if(i < num.size()) aux += num[i];
+
+            if(aux >= base){
+                c.num.push_back(aux % base);
+                carry = aux / base;
+            }else{
+                c.num.push_back(aux);
+                carry = 0;
             }
-        return 0;
+        }
+        return c;
+    }
+
+    biginteger resta(biginteger b){//asumimos que b es menor
+        tdato carry = 0;//no debe ser unsigned
+        biginteger c;
+
+        for(int i = 0; i < num.size(); i++){
+            c.num.push_back(num[i]);
+            c.num[i] -= ((i < b.num.size())? b.num[i]: 0) + carry;
+            if(c.num[i] < 0){
+                c.num[i] += base;
+                carry = 1;
+            }else carry = 0;
+        }
+        c.quitar_zeros_izq();
+        return c;
+    }
+
+    biginteger multiplicar(biginteger b){
+        ulli aux = 0, carry;
+        biginteger c;
+        c.num.assign(num.size() + b.num.size(), 0);
+
+        for(int i = 0; i < num.size(); i++){
+            carry = 0;
+            for(int j = 0; j < b.num.size() || carry; j++){
+                aux = c.num[i + j] + carry + (num[i] * ((j < b.num.size())? b.num[j] : 0));
+                carry = aux / base;
+                c.num[i + j] = aux % base;
+            }
+        }
+        c.quitar_zeros_izq();
+        return c;
+    }
+
+    int comparar(biginteger b){//este es: 1 mayor, 0 igal, -1 menor
+        if(num.size() > b.num.size()){
+            return 1;
+        }else if(num.size() < b.num.size()){
+            return -1;
+        }else{
+            for(int i = num.size() - 1; i >= 0; i--){
+                if(num[i] > b.num[i]) return 1;
+                else if(num[i] < b.num[i]) return -1;
+            }
+            return 0;
+        }
+    }
+
+    bool par(){ return num[0] % 2 == 0; }
+
+    void dividirDos(){
+        tdato carry = 0;
+        ulli aux;
+        for (int i = num.size() - 1; i >= 0; --i) {
+            aux = num[i] + carry * base;
+            num[i] = aux / 2;
+            carry = aux % 2;
+        }
+        quitar_zeros_izq();
     }
 };
 typedef biginteger bigint;
 
-bigint operator+(bigint &x, bigint &y){return x.suma(y);}
-bigint operator-(bigint &x, bigint &y){return x.resta(y);}
-bigint operator*(bigint &x, bigint &y){return x.multiplicar(y);}
-
-bigint operator+=(bigint &x, bigint &y){return x = x.suma(y);}
-bigint operator-=(bigint &x, bigint &y){return x = x.resta(y);}
-bigint operator*=(bigint &x, bigint &y){return x = x.multiplicar(y);}
-
-bool operator<(bigint &x, bigint &y){return x.comparar(y) == -1;}
-bool operator>(bigint &x, bigint &y){return x.comparar(y) == 1;}
-bool operator==(biginteger &x, biginteger &y){return x.comparar(y) == 0;}
-bool operator<=(bigint &x, bigint &y){
-    int q = x.comparar(y);
-    return q == -1 || q == 0;
+bool operator>(bigint &a, bigint &b){
+    if(a.signo == b.signo){
+        if(a.signo) return a.comparar(b) > 0;
+        else return b.comparar(a) > 0;
+    }else return a.signo;
 }
-bool operator>=(bigint &x, bigint &y){
-    int q = x.comparar(y);
-    return q == 0 || q == 1;
+bool operator<(bigint &a, bigint &b){
+    if(a.signo == b.signo){
+        if(a.signo) return a.comparar(b) < 0;
+        else return b.comparar(a) < 0;
+    }else return !a.signo;
+}
+bool operator==(bigint &a, bigint &b){
+    if(a.signo != b.signo) return false;
+    else return a.comparar(b) == 0;
+}
+bool operator!=(bigint &a, bigint &b){
+    return !(a==b);
+}
+bool operator>=(bigint &a, bigint &b){
+    if(a.signo == b.signo){
+        if(a.signo) return a.comparar(b) >= 0;
+        else return b.comparar(a) >= 0;
+    }else return a.signo;
+}
+bool operator<=(bigint &a, bigint &b){
+    if(a.signo == b.signo){
+        if(a.signo) return a.comparar(b) <= 0;
+        else return b.comparar(a) <= 0;
+    }else return !a.signo;
+}
+
+bigint operator+(bigint &a, bigint&b){
+    bigint c;
+    if(a.signo == b.signo){
+        c = a.suma(b);
+        c.signo = a.signo;
+    }else if(a > b){
+        c = a.resta(b);
+        c.signo = a.signo;
+    }else{
+        c = b.resta(a);
+        c.signo = b.signo;
+    }
+    return c;
+}
+bigint operator-(bigint &a, bigint&b){
+    bigint c;
+    if(a.comparar(b) > 0){
+        if(a.signo == b.signo) c = a.resta(b);
+        else c = a.suma(b);
+        c.signo = a.signo;
+    }else{
+        if(a.signo == b.signo) c = b.resta(a);
+        else c = a.suma(b);
+        c.signo = !b.signo;
+    }
+    return c;
+}
+bigint operator*(bigint &a, bigint &b){
+    bigint c = a.multiplicar(b);
+    c.signo = a.signo == b.signo;
+    return c;
+}
+
+bigint operator+=(bigint &a, bigint &b){return a = a + b;}
+bigint operator-=(bigint &a, bigint &b){return a = a - b;}
+bigint operator*=(bigint &a, bigint &b){return a = a * b;}
+
+bigint operator<<(bigint &a, ulli b){
+    a.iniciar(b);
+    return a;
+}
+bigint operator<<(bigint &a, string b){
+    a.iniciar(b);
+    return a;
 }
 
 int main(){
-    string n, m;
-    biginteger b1, b2, b3;
+    int n, m;
+    bigint a, u, t;
+    u << 1;
+    t << 3;
 
-    while(cin >> n >> m){
-        b1.iniciar(n);
-        b2.iniciar(m);
+    while(cin >> n){
+        a << n;
 
-        b3 = b1 * b2;
-        b3.imprimir();
-
-        b3 = b1 + b2;
-        b3.imprimir();
-
-        if(b1 > b2){
-            cout << "b1 es mayor" << endl;
-        }else if(b1 == b2){
-            cout << "b1 igual b2" << endl;
-        }else{
-            cout << "b1 es menor" << endl;
+        while(a != u){
+            a.imprimir();
+            if(!a.par()){
+                a = t*a;
+                a = a + u;
+            }else{
+                a.dividirDos();
+            }
         }
-        cout << endl;
     }
+
+    return 0;
 }
+
