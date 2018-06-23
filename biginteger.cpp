@@ -30,6 +30,11 @@ struct biginteger{
         quitar_zeros_izq();
     }
 
+    void iniciar(biginteger b){
+        num.assign(b.num.begin(), b.num.end());
+        signo = b.signo;
+    }
+
     void quitar_zeros_izq(){
         while(num.size() && !num.back()) num.pop_back();
         if(num.size() == 0 && num[0] == 0) signo = true;
@@ -123,6 +128,38 @@ struct biginteger{
         }
         quitar_zeros_izq();
     }
+
+    biginteger dividir(biginteger b){
+        if(comparar(b) < 0){
+            biginteger cero; cero.iniciar(0);
+            return cero;
+        }
+        biginteger may, men, med, m;
+        m.iniciar(1);
+        may = suma(m); may.signo = true;
+        men.iniciar(0);
+        int cmp;
+
+        while(true){
+            med = may.suma(men); med.signo = true;
+            med.dividirDos();
+            m = med.multiplicar(b); m.signo = true;
+
+            cmp = comparar(m);
+            if(cmp == 0){
+                break;
+            }else if(cmp < 0){
+                may.iniciar(med);
+            }else{
+                if(resta(m).comparar(b) < 0){
+                    break;
+                }else{
+                    men.iniciar(med);
+                }
+            }
+        }
+        return med;
+    }
 };
 typedef biginteger bigint;
 
@@ -190,6 +227,13 @@ bigint operator*(bigint &a, bigint &b){
     c.signo = a.signo == b.signo;
     return c;
 }
+bigint operator/(bigint &a, bigint &b){
+    bool s = a.signo == b.signo;
+    a.signo = true; b.signo = true;
+    bigint c = a.dividir(b);
+    c.signo = s;
+    return c;
+}
 
 bigint operator+=(bigint &a, bigint &b){return a = a + b;}
 bigint operator-=(bigint &a, bigint &b){return a = a - b;}
@@ -205,25 +249,16 @@ bigint operator<<(bigint &a, string b){
 }
 
 int main(){
-    int n, m;
+    string n, m;
     bigint a, u, t;
-    u << 1;
-    t << 3;
 
-    while(cin >> n){
+    while(cin >> n >> m){
         a << n;
-
-        while(a != u){
-            a.imprimir();
-            if(!a.par()){
-                a = t*a;
-                a = a + u;
-            }else{
-                a.dividirDos();
-            }
-        }
+        u << m;
+        t = a / u;
+        t.imprimir();
     }
-
     return 0;
 }
+
 
