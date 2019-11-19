@@ -5,11 +5,36 @@ typedef unsigned long long int ulli;
 typedef long long int tdato; //no debe ser unsigned para la resta!!!
 tdato base = 1000000000;
 
-struct biginteger{
-    vector<tdato> num;
-    bool signo;
+class biginteger{
+    private:
 
-    void iniciar(int n){
+    vector<tdato> num;
+    mutable bool signo;
+
+    void quitar_zeros_izq(){
+        while(num.size() && !num.back()) num.pop_back();
+        if(num.size() == 0 && num[0] == 0) signo = true;
+    }
+
+    bool par(){ return num[0] % 2 == 0; }
+
+    void dividirDos(){
+        tdato carry = 0;
+        ulli aux;
+        for (int i = num.size() - 1; i >= 0; --i) {
+            aux = num[i] + carry * base;
+            num[i] = aux / 2;
+            carry = aux % 2;
+        }
+        quitar_zeros_izq();
+    }
+
+    public:
+
+    bool getSigno() const {  return signo;  }
+    void setSigno(bool s) const {  signo = s;  }
+
+    void iniciar(tdato n){
         num.clear();
         signo = n >= 0;
         n = abs(n);
@@ -18,7 +43,6 @@ struct biginteger{
             n /= base;
         }
     }
-
     void iniciar(string n){
         num.clear();
         signo = n[0] != '-';
@@ -29,15 +53,9 @@ struct biginteger{
         }
         quitar_zeros_izq();
     }
-
     void iniciar(biginteger b){
         num.assign(b.num.begin(), b.num.end());
         signo = b.signo;
-    }
-
-    void quitar_zeros_izq(){
-        while(num.size() && !num.back()) num.pop_back();
-        if(num.size() == 0 && num[0] == 0) signo = true;
     }
 
     void imprimir(){
@@ -48,7 +66,21 @@ struct biginteger{
         printf("\n");
     }
 
-    biginteger suma(biginteger b){
+    int comparar(biginteger b) const {//este es: 1 mayor, 0 igal, -1 menor
+        if(num.size() > b.num.size()){
+            return 1;
+        }else if(num.size() < b.num.size()){
+            return -1;
+        }else{
+            for(int i = num.size() - 1; i >= 0; i--){
+                if(num[i] > b.num[i]) return 1;
+                else if(num[i] < b.num[i]) return -1;
+            }
+            return 0;
+        }
+    }
+
+    biginteger suma(biginteger b) const {
         ulli carry = 0, aux;
         int l = max(b.num.size(), num.size());
         biginteger c;
@@ -69,7 +101,7 @@ struct biginteger{
         return c;
     }
 
-    biginteger resta(biginteger b){//asumimos que b es menor
+    biginteger resta(biginteger b) const {//asumimos que b es menor
         tdato carry = 0;//no debe ser unsigned
         biginteger c;
 
@@ -85,7 +117,7 @@ struct biginteger{
         return c;
     }
 
-    biginteger multiplicar(biginteger b){
+    biginteger multiplicar(biginteger b) const {
         ulli aux = 0, carry;
         biginteger c;
         c.num.assign(num.size() + b.num.size(), 0);
@@ -102,34 +134,7 @@ struct biginteger{
         return c;
     }
 
-    int comparar(biginteger b){//este es: 1 mayor, 0 igal, -1 menor
-        if(num.size() > b.num.size()){
-            return 1;
-        }else if(num.size() < b.num.size()){
-            return -1;
-        }else{
-            for(int i = num.size() - 1; i >= 0; i--){
-                if(num[i] > b.num[i]) return 1;
-                else if(num[i] < b.num[i]) return -1;
-            }
-            return 0;
-        }
-    }
-
-    bool par(){ return num[0] % 2 == 0; }
-
-    void dividirDos(){
-        tdato carry = 0;
-        ulli aux;
-        for (int i = num.size() - 1; i >= 0; --i) {
-            aux = num[i] + carry * base;
-            num[i] = aux / 2;
-            carry = aux % 2;
-        }
-        quitar_zeros_izq();
-    }
-
-    biginteger dividir(biginteger b){
+    biginteger dividir(biginteger b) const {
         if(comparar(b) < 0){
             biginteger cero; cero.iniciar(0);
             return cero;
@@ -146,118 +151,186 @@ struct biginteger{
             m = med.multiplicar(b); m.signo = true;
 
             cmp = comparar(m);
-            if(cmp == 0){
-                break;
-            }else if(cmp < 0){
-                may.iniciar(med);
-            }else{
-                if(resta(m).comparar(b) < 0){
-                    break;
-                }else{
-                    men.iniciar(med);
-                }
+            if(cmp == 0) break;
+            else if(cmp < 0) may.iniciar(med);
+            else{
+                if(resta(m).comparar(b) < 0) break;
+                else men.iniciar(med);
             }
         }
         return med;
     }
+
+
+    biginteger &operator=(tdato b);
+
+    friend bool operator<(const biginteger&a, const biginteger&b);
+    friend bool operator>(const biginteger&a, const biginteger&b);
+    friend bool operator>=(const biginteger&a, const biginteger&b);
+    friend bool operator<=(const biginteger&a, const biginteger&b);
+    friend bool operator==(const biginteger&a, const biginteger&b);
+    friend bool operator!=(const biginteger&a, const biginteger&b);
+
+    friend biginteger operator+(const biginteger&a, const biginteger&b);
+    friend biginteger operator-(const biginteger&a, const biginteger&b);
+    friend biginteger operator*(const biginteger&a, const biginteger&b);
+    friend biginteger operator/(const biginteger&a, const biginteger&b);
+
+    friend biginteger operator+(const biginteger&a, tdato b);
+    friend biginteger operator-(const biginteger&a, tdato b);
+    friend biginteger operator*(const biginteger&a, tdato b);
+    friend biginteger operator/(const biginteger&a, tdato b);
+
+    friend biginteger operator+(tdato a, const biginteger&b);
+    friend biginteger operator-(tdato a, const biginteger&b);
+    friend biginteger operator*(tdato a, const biginteger&b);
+    friend biginteger operator/(tdato a, const biginteger&b);
+
+    friend biginteger operator+=(biginteger&a, const biginteger&b);
+    friend biginteger operator-=(biginteger&a, const biginteger&b);
+    friend biginteger operator*=(biginteger&a, const biginteger&b);
+    friend biginteger operator/=(biginteger&a, const biginteger&b);
+
+    friend biginteger operator+=(biginteger&a, tdato b);
+    friend biginteger operator-=(biginteger&a, tdato b);
+    friend biginteger operator*=(biginteger&a, tdato b);
+    friend biginteger operator/=(biginteger&a, tdato b);
 };
 typedef biginteger bigint;
 
-bool operator>(bigint &a, bigint &b){
-    if(a.signo == b.signo){
-        if(a.signo) return a.comparar(b) > 0;
+
+bigint &bigint::operator=(tdato b){
+    iniciar(b);
+    return *this;
+}
+
+
+bool operator>(const bigint &a, const bigint &b){
+    if(a.getSigno() == b.getSigno()){
+        if(a.getSigno()) return a.comparar(b) > 0;
         else return b.comparar(a) > 0;
-    }else return a.signo;
+    }else return a.getSigno();
 }
-bool operator<(bigint &a, bigint &b){
-    if(a.signo == b.signo){
-        if(a.signo) return a.comparar(b) < 0;
-        else return b.comparar(a) < 0;
-    }else return !a.signo;
+bool operator<(const bigint &a, const bigint &b){
+    return (b > a);
 }
-bool operator==(bigint &a, bigint &b){
-    if(a.signo != b.signo) return false;
+bool operator==(const bigint &a, const bigint &b){
+    if(a.getSigno() != b.getSigno()) return false;
     else return a.comparar(b) == 0;
 }
-bool operator!=(bigint &a, bigint &b){
+bool operator!=(const bigint &a, const bigint &b){
     return !(a==b);
 }
-bool operator>=(bigint &a, bigint &b){
-    if(a.signo == b.signo){
-        if(a.signo) return a.comparar(b) >= 0;
+bool operator>=(const bigint &a, const bigint &b){
+    if(a.getSigno() == b.getSigno()){
+        if(a.getSigno()) return a.comparar(b) >= 0;
         else return b.comparar(a) >= 0;
-    }else return a.signo;
+    }else return a.getSigno();
 }
-bool operator<=(bigint &a, bigint &b){
-    if(a.signo == b.signo){
-        if(a.signo) return a.comparar(b) <= 0;
-        else return b.comparar(a) <= 0;
-    }else return !a.signo;
+bool operator<=(const bigint &a, const bigint &b){
+    return (b >= a);
 }
 
-bigint operator+(bigint &a, bigint&b){
+
+bigint operator+(const bigint&a, const bigint&b){
     bigint c;
-    if(a.signo == b.signo){
+    if(a.getSigno() == b.getSigno()){
         c = a.suma(b);
-        c.signo = a.signo;
+        c.setSigno(a.getSigno());
     }else if(a > b){
         c = a.resta(b);
-        c.signo = a.signo;
+        c.setSigno(a.getSigno());
     }else{
         c = b.resta(a);
-        c.signo = b.signo;
+        c.setSigno(b.getSigno());
     }
     return c;
 }
-bigint operator-(bigint &a, bigint&b){
+bigint operator-(const bigint&a, const bigint&b){
     bigint c;
     if(a.comparar(b) > 0){
-        if(a.signo == b.signo) c = a.resta(b);
+        if(a.getSigno() == b.getSigno()) c = a.resta(b);
         else c = a.suma(b);
-        c.signo = a.signo;
+        c.setSigno(a.getSigno());
     }else{
-        if(a.signo == b.signo) c = b.resta(a);
+        if(a.getSigno() == b.getSigno()) c = b.resta(a);
         else c = a.suma(b);
-        c.signo = !b.signo;
+        c.setSigno(!b.getSigno());
     }
     return c;
 }
-bigint operator*(bigint &a, bigint &b){
+bigint operator*(const bigint&a, const bigint&b){
     bigint c = a.multiplicar(b);
-    c.signo = a.signo == b.signo;
+    c.setSigno(a.getSigno() == b.getSigno());
     return c;
 }
-bigint operator/(bigint &a, bigint &b){
-    bool s = a.signo == b.signo;
-    a.signo = true; b.signo = true;
+bigint operator/(const bigint&a, const bigint&b){
+    bool s = a.getSigno() == b.getSigno();
+    a.setSigno(true); b.setSigno(true);
     bigint c = a.dividir(b);
-    c.signo = s;
+    c.setSigno(s);
     return c;
 }
 
-bigint operator+=(bigint &a, bigint &b){return a = a + b;}
-bigint operator-=(bigint &a, bigint &b){return a = a - b;}
-bigint operator*=(bigint &a, bigint &b){return a = a * b;}
 
-bigint operator<<(bigint &a, ulli b){
-    a.iniciar(b);
-    return a;
+bigint operator+(const bigint&a, tdato b){
+    bigint c;
+    c.iniciar(b);
+    return a+c;
 }
-bigint operator<<(bigint &a, string b){
-    a.iniciar(b);
-    return a;
+bigint operator-(const bigint&a, tdato b){
+    bigint c;  c.iniciar(b);
+    return a-c;
 }
+bigint operator*(const bigint&a, tdato b){
+    bigint c;  c.iniciar(b);
+    return a*c;
+}
+bigint operator/(const bigint&a, tdato b){
+    bigint c;  c.iniciar(b);
+    return a/c;
+}
+
+
+bigint operator+(tdato b, const bigint&a){
+    bigint c;  c.iniciar(b);
+    return a+c;
+}
+bigint operator-(tdato b, const bigint&a){
+    bigint c;  c.iniciar(b);
+    return a-c;
+}
+bigint operator*(tdato b, const bigint&a){
+    bigint c;  c.iniciar(b);
+    return a*c;
+}
+bigint operator/(tdato b, const bigint&a){
+    bigint c;  c.iniciar(b);
+    return a/c;
+}
+
+
+bigint operator+=(bigint &a, const bigint &b){return a = a + b;}
+bigint operator-=(bigint &a, const bigint &b){return a = a - b;}
+bigint operator*=(bigint &a, const bigint &b){return a = a * b;}
+
+bigint operator+=(bigint &a, tdato b){return a = a + b;}
+bigint operator-=(bigint &a, tdato b){return a = a - b;}
+bigint operator*=(bigint &a, tdato b){return a = a * b;}
+
 
 int main(){
     string n, m;
-    bigint a, u, t;
+    bigint a, b, c, f;
+    f = 1;
 
-    while(cin >> n >> m){
-        a << n;
-        u << m;
-        t = a / u;
-        t.imprimir();
+    for(int i = 1; i < 10000; i++){
+        f *= i;
     }
+    f.imprimir();
+
+    //b.imprimir();
+
     return 0;
 }
 
