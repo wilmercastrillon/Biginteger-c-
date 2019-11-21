@@ -12,7 +12,7 @@ class biginteger{
     mutable bool signo;
 
     void quitar_zeros_izq(){
-        while(num.size() && !num.back()) num.pop_back();
+        while(num.size() > 1 && !num.back()) num.pop_back();
         if(num.size() == 0 && num[0] == 0) signo = true;
     }
 
@@ -38,10 +38,10 @@ class biginteger{
         num.clear();
         signo = n >= 0;
         n = abs(n);
-        while(n){
+        do{
             num.push_back((n >= base)? n % base: n);
             n /= base;
-        }
+        }while(n);
     }
     void iniciar(string n){
         num.clear();
@@ -60,10 +60,25 @@ class biginteger{
 
     void imprimir(){
         if(!signo) printf("-");
-        printf("%d", ((num.size())? num.back(): 0));
+        printf("%d", num.back());
         for(int i = num.size() - 2; i >= 0; i--)
             printf("%09d", num[i]);
         printf("\n");
+    }
+
+    string toString(){
+        string s = "", x;
+        char cad[12];
+        if(!signo) s.push_back('-');
+        sprintf(cad, "%d", num.back());
+        x = (string) cad;
+        s = s + x;
+        for(int i = num.size() - 2; i >= 0; i--){
+            sprintf(cad, "%09d", num[i]);
+            x = (string) cad;
+            s = s + x;
+        }
+        return s;
     }
 
     int comparar(biginteger b) const {//este es: 1 mayor, 0 igal, -1 menor
@@ -175,26 +190,31 @@ class biginteger{
     friend biginteger operator-(const biginteger&a, const biginteger&b);
     friend biginteger operator*(const biginteger&a, const biginteger&b);
     friend biginteger operator/(const biginteger&a, const biginteger&b);
+    friend biginteger operator%(const biginteger&a, const biginteger&b);
 
     friend biginteger operator+(const biginteger&a, tdato b);
     friend biginteger operator-(const biginteger&a, tdato b);
     friend biginteger operator*(const biginteger&a, tdato b);
     friend biginteger operator/(const biginteger&a, tdato b);
+    friend biginteger operator%(const biginteger&a, tdato b);
 
     friend biginteger operator+(tdato a, const biginteger&b);
     friend biginteger operator-(tdato a, const biginteger&b);
     friend biginteger operator*(tdato a, const biginteger&b);
     friend biginteger operator/(tdato a, const biginteger&b);
+    friend biginteger operator%(tdato a, const biginteger&b);
 
     friend biginteger operator+=(biginteger&a, const biginteger&b);
     friend biginteger operator-=(biginteger&a, const biginteger&b);
     friend biginteger operator*=(biginteger&a, const biginteger&b);
     friend biginteger operator/=(biginteger&a, const biginteger&b);
+    friend biginteger operator%=(biginteger&a, const biginteger&b);
 
     friend biginteger operator+=(biginteger&a, tdato b);
     friend biginteger operator-=(biginteger&a, tdato b);
     friend biginteger operator*=(biginteger&a, tdato b);
     friend biginteger operator/=(biginteger&a, tdato b);
+    friend biginteger operator%=(biginteger&a, tdato b);
 };
 typedef biginteger bigint;
 
@@ -271,6 +291,10 @@ bigint operator/(const bigint&a, const bigint&b){
     c.setSigno(s);
     return c;
 }
+bigint operator%(const bigint&a, const bigint&b){
+    bigint c = a/b;
+    return a - (b*c);
+}
 
 
 bigint operator+(const bigint&a, tdato b){
@@ -290,6 +314,10 @@ bigint operator/(const bigint&a, tdato b){
     bigint c;  c.iniciar(b);
     return a/c;
 }
+bigint operator%(const bigint&a, tdato b){
+    bigint c;  c.iniciar(b);
+    return a%c;
+}
 
 
 bigint operator+(tdato b, const bigint&a){
@@ -308,26 +336,95 @@ bigint operator/(tdato b, const bigint&a){
     bigint c;  c.iniciar(b);
     return a/c;
 }
-
+bigint operator%(tdato b, const bigint&a){
+    bigint c;  c.iniciar(b);
+    return a%c;
+}
 
 bigint operator+=(bigint &a, const bigint &b){return a = a + b;}
 bigint operator-=(bigint &a, const bigint &b){return a = a - b;}
 bigint operator*=(bigint &a, const bigint &b){return a = a * b;}
+bigint operator/=(bigint &a, const bigint &b){return a = a / b;}
+bigint operator%=(bigint &a, const bigint &b){return a = a % b;}
 
 bigint operator+=(bigint &a, tdato b){return a = a + b;}
 bigint operator-=(bigint &a, tdato b){return a = a - b;}
 bigint operator*=(bigint &a, tdato b){return a = a * b;}
+bigint operator/=(bigint &a, tdato b){return a = a / b;}
+bigint operator%=(bigint &a, tdato b){return a = a % b;}
 
+bigint operator++(bigint &a) { return a = a + 1; }
+bigint operator--(bigint &a) { return a = a - 1; }
+
+void operator >> (istream &in, bigint &a) {
+    string s;
+    cin >> s;
+    a.iniciar(s);
+}
+ostream& operator << (ostream &out, bigint &a) {
+    out << a.toString();
+    return out;
+}
+
+bigint max(bigint a, bigint b) {
+    return (a > b)? a: b;
+}
+bigint min(bigint a, bigint b) {
+    return (a < b)? a: b;
+}
+bigint gcd(bigint a, bigint b) {
+    bigint c, x;
+    c = 0;
+    while (b > c) {
+        x = a%b;
+        a = b;  b = x;
+    }
+    return a;
+}
+bigint lcm(bigint &a, bigint &b) {
+    return (a*(b/gcd(a,b)));
+}
+bigint sqrt(bigint &a) {
+    bigint dos, uno;
+    dos = 2;  uno = 1;
+    bigint x0 = a, x1 = (a+uno)/dos;
+    while (x1 < x0) {
+        x0 = x1;
+        x1 = (x1+a/x1)/dos;
+    }
+    return x0;
+}
+bigint pow(bigint a, bigint n) {
+    bigint res, dos, cero;
+    res = 1;  dos = 2;  cero = 0;
+    while(n > cero) {
+        if((n % dos) > cero) res *= a;
+        a *= a;  n /= dos;
+    }
+    return res;
+}
+bigint pow(bigint a, tdato n) {
+    bigint c;  c = n;
+    return pow(a, c);
+}
+tdato log(tdato n, bigint a) { // log_n(a)
+    tdato res = 0;
+    bigint uno, c; uno = 1; c = n;
+    while (a > uno) {
+        res++;
+        a /= c;
+    }
+    return res;
+}
 
 int main(){
     string n, m;
     bigint a, b, c, f;
-    f = 1;
+    cin >> f;
+    //cin >> a;
 
-    for(int i = 1; i < 10000; i++){
-        f *= i;
-    }
-    f.imprimir();
+    //b = pow(f, a);
+    cout << log(2,f) << endl;
 
     //b.imprimir();
 
