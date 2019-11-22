@@ -176,6 +176,39 @@ class biginteger{
         return med;
     }
 
+    biginteger karatsuba(biginteger y) const {
+        biginteger xy;
+        biginteger x = *this;
+        int m = max(x.num.size(), y.num.size()) / 2;//punto optimo en el rango [66-100]
+        if(min(x.num.size(), y.num.size()) < 83){
+            xy = x.multiplicar(y);  xy.signo = true;
+            return xy;
+        }
+
+        biginteger x1, x0, y1, y0, z0, z1, z2;
+        if(x.num.size() > m) x1.num.assign(x.num.begin()+m,x.num.end());
+        else x1.num.assign(1,0);
+        if(y.num.size() > m) y1.num.assign(y.num.begin()+m,y.num.end());
+        else y1.num.assign(1,0);
+        if(x.num.size() > m) x0.num.assign(x.num.begin(),x.num.begin()+m);
+        else x0.num.assign(x.num.begin(),x.num.end());
+        if(y.num.size() > m) y0.num.assign(y.num.begin(),y.num.begin()+m);
+        else y0.num.assign(y.num.begin(),y.num.end());
+
+        z2 = x1.karatsuba(y1);//z2 = x1.multiplicar(y1);
+        z0 = x0.karatsuba(y0);//z0 = x0.multiplicar(y0);
+        x1 = x1.suma(x0);
+        y1 = y1.suma(y0);
+        z1 = ((x1.karatsuba(y1)).resta(z2)).resta(z0);//z1 = ((x1.multiplicar(y1)).resta(z2)).resta(z0);
+
+        vector<tdato> v(2*m,0);
+        z2.num.insert(z2.num.begin(),v.begin(),v.end());
+        z1.num.insert(z1.num.begin(),v.begin(),v.begin()+m);
+        xy = (z2.suma(z1)).suma(z0);
+        xy.signo = true;
+        return xy;
+    }
+
 
     biginteger &operator=(tdato b);
 
@@ -280,7 +313,7 @@ bigint operator-(const bigint&a, const bigint&b){
     return c;
 }
 bigint operator*(const bigint&a, const bigint&b){
-    bigint c = a.multiplicar(b);
+    bigint c = a.karatsuba(b);
     c.setSigno(a.getSigno() == b.getSigno());
     return c;
 }
@@ -418,15 +451,13 @@ tdato log(tdato n, bigint a) { // log_n(a)
 }
 
 int main(){
+    //freopen("salida.txt", "w", stdout);
     string n, m;
-    bigint a, b, c, f;
-    cin >> f;
-    //cin >> a;
+    bigint a, b, c, d, q;
+    a = 2;
 
-    //b = pow(f, a);
-    cout << log(2,f) << endl;
-
-    //b.imprimir();
+    c = pow(a, 10000);
+    cout << c << endl;
 
     return 0;
 }
