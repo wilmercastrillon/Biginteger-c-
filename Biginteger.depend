@@ -1,0 +1,41 @@
+# depslib dependency file v1.0
+1585608206 source:c:\users\wilmer-pc\documents\c++\proyectos\biginteger\main.cpp
+	<iostream>
+	"biginteger.h"
+	"bigintegerMath.h"
+
+1585607282 source:c:\users\wilmer-pc\documents\c++\proyectos\biginteger\biginteger.cpp
+	<bits/stdc++.h>
+	"biginteger.h"
+
+1585607282 c:\users\wilmer-pc\documents\c++\proyectos\biginteger\biginteger.h
+	<vector>
+	<string>
+	<iostream>
+
+1585607598 source:c:\users\wilmer-pc\documents\c++\proyectos\biginteger\bigintegermath.cpp
+	"bigintegerMath.h"
+
+1585606079 c:\users\wilmer-pc\documents\c++\proyectos\biginteger\bigintegermath.h
+	"biginteger.h"
+
+1585607282 source:c:\users\wilmer-pc\documents\github\biginteger-c-\biginteger.cpp
+	<bits/stdc++.h>
+	"biginteger.h"
+
+1585607282 c:\users\wilmer-pc\documents\github\biginteger-c-\biginteger.h
+	<vector>
+	<string>
+	<iostream>
+
+1585607598 source:c:\users\wilmer-pc\documents\github\biginteger-c-\bigintegermath.cpp
+	"bigintegerMath.h"
+
+1585606079 c:\users\wilmer-pc\documents\github\biginteger-c-\bigintegermath.h
+	"biginteger.h"
+
+1585608206 source:c:\users\wilmer-pc\documents\github\biginteger-c-\main.cpp
+	<iostream>
+	"biginteger.h"
+	"bigintegerMath.h"
+
