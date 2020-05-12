@@ -1,15 +1,16 @@
-#include <bits/stdc++.h>
+#include <stdexcept>
 #include "biginteger.h"
 
 using namespace std;
+
 typedef unsigned long long int ulli;
 typedef long long tdato; //no debe ser unsigned para la resta!!!
 tdato base = 1000000000;
-
-//typedef biginteger bigint;
+const int ceros = log10(base);
 
 void biginteger::quitar_zeros_izq(){
     while(num.size() > 1 && !num.back()) num.pop_back();
+    //if(num.size()==1 && num[0]==0) setSigno(true);
 }
 
 bool biginteger::par(){ return num[0] % 2 == 0; }
@@ -28,6 +29,14 @@ void biginteger::dividirDos(){
 bool biginteger::getSigno() const {  return signo;  }
 void biginteger::setSigno(bool s) const {  signo = s;  }
 
+biginteger::biginteger(){}
+biginteger::biginteger(tdato n){
+    iniciar(n);
+}
+biginteger::biginteger(string n){
+    iniciar(n);
+}
+
 void biginteger::iniciar(tdato n){
     num.clear();
     signo = n >= 0;
@@ -41,9 +50,9 @@ void biginteger::iniciar(string n){
     num.clear();
     signo = n[0] != '-';
     if(n[0] == '-') n = n.substr(1);
-    for(int i = n.size(); i > 0; i -= 9){
-        if(i < 9) num.push_back(atoi(n.substr(0, i).c_str()));
-        else num.push_back(atoi(n.substr(i-9, 9).c_str()));
+    for(int i = n.size(); i > 0; i -= ceros){
+        if(i < ceros) num.push_back(atoi(n.substr(0, i).c_str()));
+        else num.push_back(atoi(n.substr(i-ceros, ceros).c_str()));
     }
     quitar_zeros_izq();
 }
@@ -56,7 +65,7 @@ void biginteger::imprimir(){
     if(!signo) printf("-");
     printf("%d", num.back());
     for(int i = num.size() - 2; i >= 0; i--)
-        printf("%09d", num[i]);
+        printf("%0*d", ceros, num[i]);
     printf("\n");
 }
 
@@ -68,7 +77,7 @@ string biginteger::toString(){
     x = (string) cad;
     s = s + x;
     for(int i = num.size() - 2; i >= 0; i--){
-        sprintf(cad, "%09d", num[i]);
+        sprintf(cad, "%0*d", ceros, num[i]);
         x = (string) cad;
         s = s + x;
     }
@@ -178,8 +187,13 @@ biginteger biginteger::karatsuba(biginteger y) const {
 
 biginteger biginteger::dividir(biginteger b) const {
     if(comparar(b) < 0){
-        biginteger cero; cero.iniciar(0);
+        biginteger cero(0);
         return cero;
+    }else{
+        biginteger cero(0);
+        if(b.comparar(cero) == 0){
+            throw std::invalid_argument("received zero value");
+        }
     }
     biginteger may, men, med, m;
     m.iniciar(1);
@@ -203,12 +217,10 @@ biginteger biginteger::dividir(biginteger b) const {
     return med;
 }
 
-biginteger &biginteger::operator=(tdato b){
-    iniciar(b);
-    return *this;
-}
 
-
+/*
+    COMPARE
+*/
 bool operator>(const biginteger &a, const biginteger &b){
     if(a.getSigno() == b.getSigno()){
         if(a.getSigno()) return a.comparar(b) > 0;
@@ -235,7 +247,9 @@ bool operator<=(const biginteger &a, const biginteger &b){
     return (b >= a);
 }
 
-
+/*
+    OPERATORS
+*/
 biginteger operator+(const biginteger&a, const biginteger&b){
     biginteger c;
     if(a.getSigno() == b.getSigno()){
@@ -252,7 +266,7 @@ biginteger operator+(const biginteger&a, const biginteger&b){
 }
 biginteger operator-(const biginteger&a, const biginteger&b){
     biginteger c;
-    if(a.comparar(b) > 0){
+    if(a.comparar(b) >= 0){
         if(a.getSigno() == b.getSigno()) c = a.resta(b);
         else c = a.suma(b);
         c.setSigno(a.getSigno());
@@ -265,6 +279,7 @@ biginteger operator-(const biginteger&a, const biginteger&b){
 }
 biginteger operator*(const biginteger&a, const biginteger&b){
     biginteger c = a.karatsuba(b);
+    //biginteger c = a.fft_multiply(b);
     c.setSigno(a.getSigno() == b.getSigno());
     return c;
 }
@@ -280,61 +295,14 @@ biginteger operator%(const biginteger&a, const biginteger&b){
     return a - (b*c);
 }
 
-biginteger operator+(const biginteger&a, tdato b){
-    biginteger c;
-    c.iniciar(b);
-    return a+c;
-}
-biginteger operator-(const biginteger&a, tdato b){
-    biginteger c;  c.iniciar(b);
-    return a-c;
-}
-biginteger operator*(const biginteger&a, tdato b){
-    biginteger c;  c.iniciar(b);
-    return a*c;
-}
-biginteger operator/(const biginteger&a, tdato b){
-    biginteger c;  c.iniciar(b);
-    return a/c;
-}
-biginteger operator%(const biginteger&a, tdato b){
-    biginteger c;  c.iniciar(b);
-    return a%c;
-}
-
-
-biginteger operator+(tdato b, const biginteger&a){
-    biginteger c;  c.iniciar(b);
-    return a+c;
-}
-biginteger operator-(tdato b, const biginteger&a){
-    biginteger c;  c.iniciar(b);
-    return a-c;
-}
-biginteger operator*(tdato b, const biginteger&a){
-    biginteger c;  c.iniciar(b);
-    return a*c;
-}
-biginteger operator/(tdato b, const biginteger&a){
-    biginteger c;  c.iniciar(b);
-    return a/c;
-}
-biginteger operator%(tdato b, const biginteger&a){
-    biginteger c;  c.iniciar(b);
-    return a%c;
-}
-
+/*
+    OTHER OPERATORS
+*/
 biginteger operator+=(biginteger &a, const biginteger &b){return a = a + b;}
 biginteger operator-=(biginteger &a, const biginteger &b){return a = a - b;}
 biginteger operator*=(biginteger &a, const biginteger &b){return a = a * b;}
 biginteger operator/=(biginteger &a, const biginteger &b){return a = a / b;}
 biginteger operator%=(biginteger &a, const biginteger &b){return a = a % b;}
-
-biginteger operator+=(biginteger &a, tdato b){return a = a + b;}
-biginteger operator-=(biginteger &a, tdato b){return a = a - b;}
-biginteger operator*=(biginteger &a, tdato b){return a = a * b;}
-biginteger operator/=(biginteger &a, tdato b){return a = a / b;}
-biginteger operator%=(biginteger &a, tdato b){return a = a % b;}
 
 biginteger operator++(biginteger &a) { return a = a + 1; }
 biginteger operator--(biginteger &a) { return a = a - 1; }
@@ -348,6 +316,11 @@ istream& operator >> (istream &in, biginteger &a) {
 ostream& operator << (ostream &out, biginteger &a) {
     out << a.toString();
     return out;
+}
+
+biginteger &biginteger::operator=(tdato b){
+    iniciar(b);
+    return *this;
 }
 
 

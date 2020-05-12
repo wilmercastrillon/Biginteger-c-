@@ -1,3 +1,4 @@
+#include <stdexcept>
 #include "bigintegerMath.h"
 
 biginteger max(biginteger a, biginteger b) {
@@ -32,15 +33,21 @@ biginteger pow(biginteger a, long long n) {
     return pow(a, c);
 }
 long long log(long long n, biginteger a) { // log_n(a)
+    if(a <= 0){
+        throw std::invalid_argument("received negative or zero value");
+    }
     long long res = 0;
-    biginteger uno, c; uno = 1; c = n;
-    while (a > uno) {
+    biginteger uno(1), c(n);
+    while (a >= uno) {
         res++;
         a /= c;
     }
-    return res;
+    return res - 1;
 }
 biginteger sqrt(biginteger &n) {
+    if(n < 0){
+        throw std::invalid_argument("received negative value");
+    }
     biginteger a, b, m, w;
     a = n;
     b = 1;
@@ -56,4 +63,32 @@ biginteger sqrt(biginteger &n) {
     return q;
 }
 
+biginteger gcd_ex(biginteger &a, biginteger &b, biginteger &x, biginteger &y) {
+	if (b == 0) {
+		x = 1; y = 0;
+		return a;
+	}
+	biginteger x1, y1, mod = a%b;
+	biginteger d = gcd_ex(b, mod, x1, y1);
+	x = y1;
+	y = x1 - (a/b)*y1;
+	return d;//GCD
+}
 
+biginteger expmod(biginteger a, biginteger b, biginteger m){//O(log b)
+	if(b == 0){
+        return biginteger(1);
+	}
+	biginteger q = expmod(a,b/2,m);
+	q = (q*q)%m;
+	return b%2>0? (a*q)%m : q;
+}
+
+biginteger expmod(biginteger a, biginteger b, long long m){//O(log b)
+	if(b == 0){
+        return biginteger(1);
+	}
+	biginteger q = expmod(a,b/2,m);
+	q = (q*q)%m;
+	return b%2>0? (a*q)%m : q;
+}
