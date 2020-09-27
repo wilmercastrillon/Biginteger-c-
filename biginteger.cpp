@@ -10,10 +10,8 @@ const int ceros = log10(base);
 
 void biginteger::quitar_zeros_izq(){
     while(num.size() > 1 && !num.back()) num.pop_back();
-    //if(num.size()==1 && num[0]==0) setSigno(true);
+    //if(num.size()==1 && num[0]==0) set_sign(true);
 }
-
-bool biginteger::par(){ return num[0] % 2 == 0; }
 
 void biginteger::dividirDos(){
     tdato carry = 0;
@@ -26,8 +24,9 @@ void biginteger::dividirDos(){
     quitar_zeros_izq();
 }
 
-bool biginteger::getSigno() const {  return signo;  }
-void biginteger::setSigno(bool s) const {  signo = s;  }
+bool biginteger::isEven(){ return (num[0]%2LL == 0LL); }
+bool biginteger::get_sign() const {  return signo;  }
+void biginteger::set_sign(bool s) const {  signo = s;  }
 
 biginteger::biginteger(){}
 biginteger::biginteger(tdato n){
@@ -84,7 +83,8 @@ string biginteger::toString(){
     return s;
 }
 
-int biginteger::comparar(biginteger b) const {//este es: 1 mayor, 0 igal, -1 menor
+//this is: 1 more than b, 0 iqual, -1 less than b, ignoring the sign
+int biginteger::compare(biginteger b) const {
     if(num.size() > b.num.size()){
         return 1;
     }else if(num.size() < b.num.size()){
@@ -186,12 +186,12 @@ biginteger biginteger::karatsuba(biginteger y) const {
 }
 
 biginteger biginteger::dividir(biginteger b) const {
-    if(comparar(b) < 0){
+    if(compare(b) < 0){
         biginteger cero(0);
         return cero;
     }else{
         biginteger cero(0);
-        if(b.comparar(cero) == 0){
+        if(b.compare(cero) == 0){
             throw std::invalid_argument("received zero value");
         }
     }
@@ -206,11 +206,11 @@ biginteger biginteger::dividir(biginteger b) const {
         med.dividirDos();
         m = med.karatsuba(b); m.signo = true;
 
-        cmp = comparar(m);
+        cmp = compare(m);
         if(cmp == 0) break;
         else if(cmp < 0) may.iniciar(med);
         else{
-            if(resta(m).comparar(b) < 0) break;
+            if(resta(m).compare(b) < 0) break;
             else men.iniciar(med);
         }
     }
@@ -222,26 +222,26 @@ biginteger biginteger::dividir(biginteger b) const {
     COMPARE
 */
 bool operator>(const biginteger &a, const biginteger &b){
-    if(a.getSigno() == b.getSigno()){
-        if(a.getSigno()) return a.comparar(b) > 0;
-        else return b.comparar(a) > 0;
-    }else return a.getSigno();
+    if(a.get_sign() == b.get_sign()){
+        if(a.get_sign()) return a.compare(b) > 0;
+        else return b.compare(a) > 0;
+    }else return a.get_sign();
 }
 bool operator<(const biginteger &a, const biginteger &b){
     return (b > a);
 }
 bool operator==(const biginteger &a, const biginteger &b){
-    if(a.getSigno() != b.getSigno()) return false;
-    else return a.comparar(b) == 0;
+    if(a.get_sign() != b.get_sign()) return false;
+    else return a.compare(b) == 0;
 }
 bool operator!=(const biginteger &a, const biginteger &b){
     return !(a==b);
 }
 bool operator>=(const biginteger &a, const biginteger &b){
-    if(a.getSigno() == b.getSigno()){
-        if(a.getSigno()) return a.comparar(b) >= 0;
-        else return b.comparar(a) >= 0;
-    }else return a.getSigno();
+    if(a.get_sign() == b.get_sign()){
+        if(a.get_sign()) return a.compare(b) >= 0;
+        else return b.compare(a) >= 0;
+    }else return a.get_sign();
 }
 bool operator<=(const biginteger &a, const biginteger &b){
     return (b >= a);
@@ -252,42 +252,44 @@ bool operator<=(const biginteger &a, const biginteger &b){
 */
 biginteger operator+(const biginteger&a, const biginteger&b){
     biginteger c;
-    if(a.getSigno() == b.getSigno()){
+    if(a.get_sign() == b.get_sign()){
         c = a.suma(b);
-        c.setSigno(a.getSigno());
-    }else if(a > b){
-        c = a.resta(b);
-        c.setSigno(a.getSigno());
+        c.set_sign(a.get_sign());
     }else{
-        c = b.resta(a);
-        c.setSigno(b.getSigno());
+        if(a.compare(b) > 0){
+            c = a.resta(b);
+            c.set_sign(a.get_sign());
+        }else{
+            c = b.resta(a);
+            c.set_sign(b.get_sign());
+        }
     }
     return c;
 }
 biginteger operator-(const biginteger&a, const biginteger&b){
     biginteger c;
-    if(a.comparar(b) >= 0){
-        if(a.getSigno() == b.getSigno()) c = a.resta(b);
+    if(a.compare(b) >= 0){
+        if(a.get_sign() == b.get_sign()) c = a.resta(b);
         else c = a.suma(b);
-        c.setSigno(a.getSigno());
+        c.set_sign(a.get_sign());
     }else{
-        if(a.getSigno() == b.getSigno()) c = b.resta(a);
+        if(a.get_sign() == b.get_sign()) c = b.resta(a);
         else c = a.suma(b);
-        c.setSigno(!b.getSigno());
+        c.set_sign(!b.get_sign());
     }
     return c;
 }
 biginteger operator*(const biginteger&a, const biginteger&b){
     biginteger c = a.karatsuba(b);
     //biginteger c = a.fft_multiply(b);
-    c.setSigno(a.getSigno() == b.getSigno());
+    c.set_sign(a.get_sign() == b.get_sign());
     return c;
 }
 biginteger operator/(const biginteger&a, const biginteger&b){
-    bool s = a.getSigno() == b.getSigno();
-    a.setSigno(true); b.setSigno(true);
+    bool s = a.get_sign() == b.get_sign();
+    a.set_sign(true); b.set_sign(true);
     biginteger c = a.dividir(b);
-    c.setSigno(s);
+    c.set_sign(s);
     return c;
 }
 biginteger operator%(const biginteger&a, const biginteger&b){
@@ -321,6 +323,18 @@ ostream& operator << (ostream &out, biginteger &a) {
 biginteger &biginteger::operator=(tdato b){
     iniciar(b);
     return *this;
+}
+
+int biginteger::toInt(){
+    int res = num[0];
+    if(signo) return res;
+    return res*-1;
+}
+
+long long biginteger::toLong(){
+    long long res = num[1]*base + num[0];
+    if(signo) return res;
+    return res*-1LL;
 }
 
 

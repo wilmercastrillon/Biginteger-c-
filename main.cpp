@@ -10,8 +10,9 @@ int main(){
     biginteger mod, result;
     while(cin >> mod){
 		a = a + 1;
-        result = expmod(a, b, mod);//modular exponentiation
+        result = mod_pow(a, b, mod);//modular exponentiation
         cout << result << endl;
     }
+    cout << b.toInt() << endl;
     return 0;
 }
