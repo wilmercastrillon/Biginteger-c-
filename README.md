@@ -8,13 +8,13 @@ Some implemented algorithms:
 * Binary exponentiation
 * Modular exponentiation
 
-##supports
+## supports
 * Operators: +, -, *, /, %, +=, -=, *=, /=, %=, ++, --, =
 * Comparators: <, >, <=, >=, ==, !=
 * Functions: max, min, gcd, lcm, pow, log, sqrt, gcd_ext, mod_pow, abs, bit_length, negate_sign
 * methods: get_sign, set_sign, isEven, toString, toInt, toLong, etc.
 
-##Example
+## Example
 
 ```c++
 int main(){
